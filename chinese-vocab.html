@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="中文词汇">
+<title>中文词汇</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f5f5f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .container { width: 100%; max-width: 360px; }
+  .header {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    color: #888;
+    letter-spacing: 0.5px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .chinese {
+    font-size: 64px;
+    font-weight: 500;
+    color: #1a1a1a;
+    line-height: 1.1;
+  }
+  .pinyin {
+    font-size: 20px;
+    color: #378ADD;
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+  .meaning {
+    font-size: 17px;
+    color: #666;
+  }
+  .timer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding: 0 4px;
+  }
+  .timer-label { font-size: 12px; color: #aaa; white-space: nowrap; }
+  .bar-bg {
+    flex: 1;
+    height: 4px;
+    background: #e8e8e4;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #378ADD;
+    border-radius: 2px;
+    transition: width 0.9s linear;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .control-box {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .control-box label {
+    display: block;
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  select {
+    width: 100%;
+    font-size: 13px;
+    border: none;
+    background: #f5f5f0;
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: #333;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  button {
+    padding: 12px;
+    border-radius: 14px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  button:active { transform: scale(0.97); opacity: 0.85; }
+  .btn-prev { background: #fff; color: #333; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+  .btn-next { background: #378ADD; color: #fff; }
+  .counter {
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">中文词汇 · Chinese Vocabulary</div>
+
+  <div class="card">
+    <span class="badge" id="badge">HSK 1</span>
+    <div class="chinese" id="char">我</div>
+    <div class="pinyin" id="pinyin">wǒ</div>
+    <div class="meaning" id="meaning">I / me</div>
+  </div>
+
+  <div class="timer-row">
+    <span class="timer-label">เปลี่ยนใน</span>
+    <div class="bar-bg"><div class="bar-fill" id="bar" style="width:100%"></div></div>
+    <span class="timer-label" id="countdown">—</span>
+  </div>
+
+  <div class="controls">
+    <div class="control-box">
+      <label>HSK Level</label>
+      <select id="lvl-select">
+        <option value="0">Random (ทั้งหมด)</option>
+        <option value="1" selected>HSK 1</option>
+        <option value="2">HSK 2</option>
+        <option value="3">HSK 3</option>
+        <option value="4">HSK 4</option>
+        <option value="5">HSK 5</option>
+        <option value="6">HSK 6</option>
+      </select>
+    </div>
+    <div class="control-box">
+      <label>เปลี่ยนทุก</label>
+      <select id="freq-select">
+        <option value="10">10 วินาที</option>
+        <option value="30">30 วินาที</option>
+        <option value="300">5 นาที</option>
+        <option value="1800">30 นาที</option>
+        <option value="3600">1 ชั่วโมง</option>
+        <option value="43200">12 ชั่วโมง</option>
+        <option value="86400">1 วัน</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-prev" onclick="prevWord()">← ก่อนหน้า</button>
+    <button class="btn-next" onclick="nextWord()">ต่อไป →</button>
+  </div>
+
+  <div class="counter" id="counter"></div>
+</div>
+
+<script>
+const vocab = {
+  1: [
+    {c:"我",p:"wǒ",m:"I / me"},{c:"你",p:"nǐ",m:"you"},{c:"他",p:"tā",m:"he"},{c:"她",p:"tā",m:"she"},{c:"们",p:"men",m:"(plural suffix)"},
+    {c:"好",p:"hǎo",m:"good"},{c:"是",p:"shì",m:"to be"},{c:"不",p:"bù",m:"no / not"},{c:"有",p:"yǒu",m:"to have"},{c:"在",p:"zài",m:"at / in"},
+    {c:"这",p:"zhè",m:"this"},{c:"那",p:"nà",m:"that"},{c:"什么",p:"shénme",m:"what"},{c:"哪",p:"nǎ",m:"which"},{c:"谁",p:"shuí",m:"who"},
+    {c:"怎么",p:"zěnme",m:"how"},{c:"几",p:"jǐ",m:"how many"},{c:"多少",p:"duōshao",m:"how much"},{c:"大",p:"dà",m:"big"},{c:"小",p:"xiǎo",m:"small"},
+    {c:"多",p:"duō",m:"many"},{c:"少",p:"shǎo",m:"few"},{c:"上",p:"shàng",m:"up / above"},{c:"下",p:"xià",m:"down / below"},{c:"来",p:"lái",m:"to come"},
+    {c:"去",p:"qù",m:"to go"},{c:"说",p:"shuō",m:"to speak"},{c:"看",p:"kàn",m:"to look / watch"},{c:"吃",p:"chī",m:"to eat"},{c:"喝",p:"hē",m:"to drink"},
+    {c:"要",p:"yào",m:"to want"},{c:"可以",p:"kěyǐ",m:"can / may"},{c:"想",p:"xiǎng",m:"to think / want"},{c:"知道",p:"zhīdào",m:"to know"},{c:"喜欢",p:"xǐhuān",m:"to like"},
+    {c:"一",p:"yī",m:"one"},{c:"二",p:"èr",m:"two"},{c:"三",p:"sān",m:"three"},{c:"四",p:"sì",m:"four"},{c:"五",p:"wǔ",m:"five"},
+    {c:"六",p:"liù",m:"six"},{c:"七",p:"qī",m:"seven"},{c:"八",p:"bā",m:"eight"},{c:"九",p:"jiǔ",m:"nine"},{c:"十",p:"shí",m:"ten"},
+    {c:"百",p:"bǎi",m:"hundred"},{c:"千",p:"qiān",m:"thousand"},{c:"今天",p:"jīntiān",m:"today"},{c:"明天",p:"míngtiān",m:"tomorrow"},{c:"昨天",p:"zuótiān",m:"yesterday"},
+    {c:"年",p:"nián",m:"year"},{c:"月",p:"yuè",m:"month"},{c:"日",p:"rì",m:"day"},{c:"时间",p:"shíjiān",m:"time"},{c:"现在",p:"xiànzài",m:"now"},
+    {c:"人",p:"rén",m:"person"},{c:"家",p:"jiā",m:"home / family"},{c:"学校",p:"xuéxiào",m:"school"},{c:"老师",p:"lǎoshī",m:"teacher"},{c:"学生",p:"xuéshēng",m:"student"},
+    {c:"朋友",p:"péngyǒu",m:"friend"},{c:"爸爸",p:"bàba",m:"father"},{c:"妈妈",p:"māma",m:"mother"},{c:"哥哥",p:"gēgē",m:"older brother"},{c:"妹妹",p:"mèimei",m:"younger sister"},
+    {c:"水",p:"shuǐ",m:"water"},{c:"饭",p:"fàn",m:"rice / meal"},{c:"书",p:"shū",m:"book"},{c:"车",p:"chē",m:"car"},{c:"钱",p:"qián",m:"money"},
+    {c:"手机",p:"shǒujī",m:"mobile phone"},{c:"电话",p:"diànhuà",m:"telephone"},{c:"电脑",p:"diànnǎo",m:"computer"},{c:"工作",p:"gōngzuò",m:"work / job"},{c:"医院",p:"yīyuàn",m:"hospital"},
+    {c:"中国",p:"zhōngguó",m:"China"},{c:"北京",p:"běijīng",m:"Beijing"},{c:"上海",p:"shànghǎi",m:"Shanghai"},{c:"英语",p:"yīngyǔ",m:"English"},{c:"汉语",p:"hànyǔ",m:"Chinese language"},
+    {c:"男",p:"nán",m:"male"},{c:"女",p:"nǚ",m:"female"},{c:"高",p:"gāo",m:"tall / high"},{c:"热",p:"rè",m:"hot"},{c:"冷",p:"lěng",m:"cold"},
+    {c:"贵",p:"guì",m:"expensive"},{c:"便宜",p:"piányí",m:"cheap"},{c:"新",p:"xīn",m:"new"},{c:"旧",p:"jiù",m:"old / used"},{c:"白",p:"bái",m:"white"},
+    {c:"对",p:"duì",m:"correct"},{c:"没有",p:"méiyǒu",m:"don't have"},{c:"谢谢",p:"xièxiè",m:"thank you"},{c:"对不起",p:"duìbuqǐ",m:"sorry"},{c:"没关系",p:"méiguānxi",m:"no problem"},
+    {c:"请",p:"qǐng",m:"please"},{c:"再见",p:"zàijiàn",m:"goodbye"},{c:"你好",p:"nǐhǎo",m:"hello"},{c:"的",p:"de",m:"(possessive)"},{c:"和",p:"hé",m:"and"},
+    {c:"也",p:"yě",m:"also / too"},{c:"都",p:"dōu",m:"all / both"},{c:"很",p:"hěn",m:"very"},{c:"非常",p:"fēicháng",m:"extremely"},{c:"一起",p:"yīqǐ",m:"together"},
+    {c:"前",p:"qián",m:"front / before"},{c:"后",p:"hòu",m:"back / after"},{c:"里",p:"lǐ",m:"inside"},{c:"外",p:"wài",m:"outside"},{c:"中",p:"zhōng",m:"middle"},
+    {c:"左",p:"zuǒ",m:"left"},{c:"右",p:"yòu",m:"right"},{c:"天气",p:"tiānqì",m:"weather"},{c:"时候",p:"shíhòu",m:"time / moment"},{c:"一样",p:"yīyàng",m:"same"},
+    {c:"开始",p:"kāishǐ",m:"to start"},{c:"结束",p:"jiéshù",m:"to end"},{c:"认识",p:"rènshi",m:"to know (person)"},{c:"学习",p:"xuéxí",m:"to study"},{c:"睡觉",p:"shuìjiào",m:"to sleep"},
+    {c:"买",p:"mǎi",m:"to buy"},{c:"卖",p:"mài",m:"to sell"},{c:"坐",p:"zuò",m:"to sit"},{c:"走",p:"zǒu",m:"to walk"},{c:"跑",p:"pǎo",m:"to run"},
+    {c:"太阳",p:"tàiyáng",m:"sun"},{c:"月亮",p:"yuèliàng",m:"moon"},{c:"花",p:"huā",m:"flower"},{c:"猫",p:"māo",m:"cat"},{c:"狗",p:"gǒu",m:"dog"},
+    {c:"红",p:"hóng",m:"red"},{c:"黑",p:"hēi",m:"black"},{c:"绿",p:"lǜ",m:"green"},{c:"蓝",p:"lán",m:"blue"},{c:"黄",p:"huáng",m:"yellow"},
+    {c:"小时",p:"xiǎoshí",m:"hour"},{c:"分钟",p:"fēnzhōng",m:"minute"},{c:"星期",p:"xīngqī",m:"week"},{c:"岁",p:"suì",m:"years old"},{c:"号",p:"hào",m:"number / date"},
+  ],
+  2: [
+    {c:"但是",p:"dànshì",m:"but"},{c:"因为",p:"yīnwèi",m:"because"},{c:"所以",p:"suǒyǐ",m:"therefore"},{c:"如果",p:"rúguǒ",m:"if"},{c:"虽然",p:"suīrán",m:"although"},
+    {c:"已经",p:"yǐjīng",m:"already"},{c:"还是",p:"háishì",m:"or / still"},{c:"可是",p:"kěshì",m:"but / however"},{c:"从",p:"cóng",m:"from"},{c:"到",p:"dào",m:"to / arrive"},
+    {c:"为了",p:"wèile",m:"in order to"},{c:"帮助",p:"bāngzhù",m:"to help"},{c:"告诉",p:"gàosù",m:"to tell"},{c:"明白",p:"míngbái",m:"to understand"},{c:"觉得",p:"juéde",m:"to feel"},
+    {c:"希望",p:"xīwàng",m:"to hope"},{c:"相信",p:"xiāngxìn",m:"to believe"},{c:"担心",p:"dānxīn",m:"to worry"},{c:"高兴",p:"gāoxìng",m:"happy"},{c:"难过",p:"nánguò",m:"sad"},
+    {c:"生气",p:"shēngqì",m:"angry"},{c:"累",p:"lèi",m:"tired"},{c:"忙",p:"máng",m:"busy"},{c:"重要",p:"zhòngyào",m:"important"},{c:"简单",p:"jiǎndān",m:"simple"},
+    {c:"漂亮",p:"piàoliàng",m:"beautiful"},{c:"可爱",p:"kě'ài",m:"cute"},{c:"聪明",p:"cōngming",m:"smart"},{c:"努力",p:"nǔlì",m:"hardworking"},{c:"健康",p:"jiànkāng",m:"healthy"},
+    {c:"地铁",p:"dìtiě",m:"subway"},{c:"公共汽车",p:"gōnggòng qìchē",m:"bus"},{c:"出租车",p:"chūzūchē",m:"taxi"},{c:"飞机",p:"fēijī",m:"airplane"},{c:"火车",p:"huǒchē",m:"train"},
+    {c:"机场",p:"jīchǎng",m:"airport"},{c:"宾馆",p:"bīnguǎn",m:"hotel"},{c:"超市",p:"chāoshì",m:"supermarket"},{c:"餐厅",p:"cāntīng",m:"restaurant"},{c:"咖啡",p:"kāfēi",m:"coffee"},
+    {c:"茶",p:"chá",m:"tea"},{c:"米饭",p:"mǐfàn",m:"cooked rice"},{c:"面条",p:"miàntiáo",m:"noodles"},{c:"肉",p:"ròu",m:"meat"},{c:"水果",p:"shuǐguǒ",m:"fruit"},
+    {c:"苹果",p:"píngguǒ",m:"apple"},{c:"香蕉",p:"xiāngjiāo",m:"banana"},{c:"鸡蛋",p:"jīdàn",m:"egg"},{c:"牛奶",p:"niúnǎi",m:"milk"},{c:"衣服",p:"yīfu",m:"clothes"},
+    {c:"护照",p:"hùzhào",m:"passport"},{c:"银行",p:"yínháng",m:"bank"},{c:"医生",p:"yīshēng",m:"doctor"},{c:"工程师",p:"gōngchéngshī",m:"engineer"},{c:"经理",p:"jīnglǐ",m:"manager"},
+    {c:"运动",p:"yùndòng",m:"sport"},{c:"游泳",p:"yóuyǒng",m:"to swim"},{c:"跳舞",p:"tiàowǔ",m:"to dance"},{c:"唱歌",p:"chànggē",m:"to sing"},{c:"音乐",p:"yīnyuè",m:"music"},
+    {c:"电影",p:"diànyǐng",m:"movie"},{c:"网络",p:"wǎngluò",m:"internet"},{c:"发现",p:"fāxiàn",m:"to discover"},{c:"改变",p:"gǎibiàn",m:"to change"},{c:"选择",p:"xuǎnzé",m:"to choose"},
+    {c:"决定",p:"juédìng",m:"to decide"},{c:"解决",p:"jiějué",m:"to solve"},{c:"完成",p:"wánchéng",m:"to complete"},{c:"准备",p:"zhǔnbèi",m:"to prepare"},{c:"注意",p:"zhùyì",m:"to pay attention"},
+    {c:"习惯",p:"xíguàn",m:"habit"},{c:"经验",p:"jīngyàn",m:"experience"},{c:"机会",p:"jīhuì",m:"opportunity"},{c:"问题",p:"wèntí",m:"problem"},{c:"答案",p:"dá'àn",m:"answer"},
+    {c:"结果",p:"jiéguǒ",m:"result"},{c:"原因",p:"yuányīn",m:"reason"},{c:"目的",p:"mùdì",m:"purpose"},{c:"计划",p:"jìhuà",m:"plan"},{c:"成功",p:"chénggōng",m:"success"},
+    {c:"失败",p:"shībài",m:"failure"},{c:"进步",p:"jìnbù",m:"progress"},{c:"关系",p:"guānxi",m:"relationship"},{c:"影响",p:"yǐngxiǎng",m:"influence"},{c:"支持",p:"zhīchí",m:"support"},
+    {c:"同意",p:"tóngyì",m:"to agree"},{c:"拒绝",p:"jùjué",m:"to refuse"},{c:"接受",p:"jiēshòu",m:"to accept"},{c:"放弃",p:"fàngqì",m:"to give up"},{c:"坚持",p:"jiānchí",m:"to persist"},
+    {c:"危险",p:"wēixiǎn",m:"dangerous"},{c:"安全",p:"ānquán",m:"safe"},{c:"方便",p:"fāngbiàn",m:"convenient"},{c:"有意思",p:"yǒuyìsi",m:"interesting"},{c:"没意思",p:"méiyìsi",m:"boring"},
+  ],
+  3: [
+    {c:"尽管",p:"jǐnguǎn",m:"even though"},{c:"然而",p:"rán'ér",m:"however"},{c:"因此",p:"yīncǐ",m:"therefore"},{c:"另外",p:"lìngwài",m:"in addition"},{c:"甚至",p:"shènzhì",m:"even"},
+    {c:"其实",p:"qíshí",m:"actually"},{c:"当然",p:"dāngrán",m:"of course"},{c:"确实",p:"quèshí",m:"indeed"},{c:"逐渐",p:"zhújiàn",m:"gradually"},{c:"突然",p:"tūrán",m:"suddenly"},
+    {c:"立刻",p:"lìkè",m:"immediately"},{c:"终于",p:"zhōngyú",m:"finally"},{c:"仍然",p:"réngrán",m:"still"},{c:"政府",p:"zhèngfǔ",m:"government"},{c:"法律",p:"fǎlǜ",m:"law"},
+    {c:"社会",p:"shèhuì",m:"society"},{c:"文化",p:"wénhuà",m:"culture"},{c:"历史",p:"lìshǐ",m:"history"},{c:"经济",p:"jīngjì",m:"economy"},{c:"科技",p:"kējì",m:"technology"},
+    {c:"环境",p:"huánjìng",m:"environment"},{c:"资源",p:"zīyuán",m:"resources"},{c:"能源",p:"néngyuán",m:"energy"},{c:"气候",p:"qìhòu",m:"climate"},{c:"污染",p:"wūrǎn",m:"pollution"},
+    {c:"保护",p:"bǎohù",m:"to protect"},{c:"竞争",p:"jìngzhēng",m:"competition"},{c:"合作",p:"hézuò",m:"cooperation"},{c:"交流",p:"jiāoliú",m:"exchange"},{c:"协议",p:"xiéyì",m:"agreement"},
+    {c:"商业",p:"shāngyè",m:"business"},{c:"贸易",p:"màoyì",m:"trade"},{c:"投资",p:"tóuzī",m:"investment"},{c:"利润",p:"lìrùn",m:"profit"},{c:"损失",p:"sǔnshī",m:"loss"},
+    {c:"管理",p:"guǎnlǐ",m:"management"},{c:"领导",p:"lǐngdǎo",m:"leadership"},{c:"员工",p:"yuángōng",m:"employee"},{c:"薪水",p:"xīnshuǐ",m:"salary"},{c:"技术",p:"jìshù",m:"technology"},
+    {c:"研究",p:"yánjiū",m:"research"},{c:"数据",p:"shùjù",m:"data"},{c:"分析",p:"fēnxī",m:"analysis"},{c:"系统",p:"xìtǒng",m:"system"},{c:"策略",p:"cèlüè",m:"strategy"},
+    {c:"过程",p:"guòchéng",m:"process"},{c:"心理",p:"xīnlǐ",m:"psychology"},{c:"情绪",p:"qíngxù",m:"emotion"},{c:"态度",p:"tàidù",m:"attitude"},{c:"价值观",p:"jiàzhíguān",m:"values"},
+    {c:"责任",p:"zérèn",m:"responsibility"},{c:"义务",p:"yìwù",m:"obligation"},{c:"权利",p:"quánlì",m:"rights"},{c:"自由",p:"zìyóu",m:"freedom"},{c:"平等",p:"píngděng",m:"equality"},
+    {c:"教育",p:"jiàoyù",m:"education"},{c:"知识",p:"zhīshi",m:"knowledge"},{c:"能力",p:"nénglì",m:"ability"},{c:"质量",p:"zhìliàng",m:"quality"},{c:"效率",p:"xiàolǜ",m:"efficiency"},
+    {c:"目标",p:"mùbiāo",m:"goal"},{c:"任务",p:"rènwù",m:"task"},{c:"挑战",p:"tiǎozhàn",m:"challenge"},{c:"困难",p:"kùnnán",m:"difficulty"},{c:"机遇",p:"jīyù",m:"opportunity"},
+    {c:"风险",p:"fēngxiǎn",m:"risk"},{c:"医疗",p:"yīliáo",m:"medical care"},{c:"疾病",p:"jíbìng",m:"disease"},{c:"治疗",p:"zhìliáo",m:"treatment"},{c:"恢复",p:"huīfù",m:"to recover"},
+    {c:"联系",p:"liánxì",m:"connection"},{c:"反对",p:"fǎnduì",m:"to oppose"},{c:"同意",p:"tóngyì",m:"to agree"},{c:"坚持",p:"jiānchí",m:"to persist"},{c:"贡献",p:"gòngxiàn",m:"contribution"},
+  ],
+  4: [
+    {c:"趋势",p:"qūshì",m:"trend"},{c:"现象",p:"xiànxiàng",m:"phenomenon"},{c:"背景",p:"bèijǐng",m:"background / context"},{c:"概念",p:"gàiniàn",m:"concept"},{c:"理论",p:"lǐlùn",m:"theory"},
+    {c:"原则",p:"yuánzé",m:"principle"},{c:"规律",p:"guīlǜ",m:"natural law"},{c:"标准",p:"biāozhǔn",m:"standard"},{c:"模式",p:"móshì",m:"pattern"},{c:"框架",p:"kuàngjià",m:"framework"},
+    {c:"结构",p:"jiégòu",m:"structure"},{c:"机制",p:"jīzhì",m:"mechanism"},{c:"功能",p:"gōngnéng",m:"function"},{c:"特征",p:"tèzhēng",m:"characteristic"},{c:"本质",p:"běnzhì",m:"essence"},
+    {c:"核心",p:"héxīn",m:"core"},{c:"关键",p:"guānjiàn",m:"key / crucial"},{c:"基础",p:"jīchǔ",m:"foundation"},{c:"前提",p:"qiántí",m:"premise"},{c:"推断",p:"tuīduàn",m:"to infer"},
+    {c:"推理",p:"tuīlǐ",m:"reasoning"},{c:"论证",p:"lùnzhèng",m:"to argue"},{c:"验证",p:"yànzhèng",m:"to verify"},{c:"评估",p:"pínggū",m:"to evaluate"},{c:"衡量",p:"héngliáng",m:"to measure"},
+    {c:"比较",p:"bǐjiào",m:"to compare"},{c:"区分",p:"qūfēn",m:"to distinguish"},{c:"归纳",p:"guīnà",m:"to summarize"},{c:"抽象",p:"chōuxiàng",m:"abstract"},{c:"具体",p:"jùtǐ",m:"specific"},
+    {c:"客观",p:"kèguān",m:"objective"},{c:"主观",p:"zhǔguān",m:"subjective"},{c:"全面",p:"quánmiàn",m:"comprehensive"},{c:"深入",p:"shēnrù",m:"in-depth"},{c:"根本",p:"gēnběn",m:"fundamental"},
+    {c:"彻底",p:"chèdǐ",m:"thorough"},{c:"积累",p:"jīlěi",m:"to accumulate"},{c:"整合",p:"zhěnghé",m:"to integrate"},{c:"优化",p:"yōuhuà",m:"to optimize"},{c:"创新",p:"chuàngxīn",m:"innovation"},
+    {c:"突破",p:"tūpò",m:"breakthrough"},{c:"变革",p:"biàngé",m:"transformation"},{c:"推动",p:"tuīdòng",m:"to promote"},{c:"促进",p:"cùjìn",m:"to facilitate"},{c:"限制",p:"xiànzhì",m:"to restrict"},
+    {c:"弥补",p:"míbǔ",m:"to make up for"},{c:"利用",p:"lìyòng",m:"to utilize"},{c:"参考",p:"cānkǎo",m:"reference"},{c:"依据",p:"yījù",m:"basis"},{c:"来源",p:"láiyuán",m:"source"},
+    {c:"途径",p:"tújìng",m:"channel / way"},{c:"手段",p:"shǒuduàn",m:"means"},{c:"措施",p:"cuòshī",m:"measure"},{c:"后果",p:"hòuguǒ",m:"consequence"},{c:"代价",p:"dàijià",m:"cost"},
+    {c:"效益",p:"xiàoyì",m:"benefit"},{c:"价值",p:"jiàzhí",m:"value"},{c:"意义",p:"yìyì",m:"significance"},{c:"作用",p:"zuòyòng",m:"function / effect"},{c:"成就",p:"chéngjiù",m:"achievement"},
+    {c:"业绩",p:"yèjì",m:"performance"},{c:"层次",p:"céngcì",m:"level / layer"},{c:"维度",p:"wéidù",m:"dimension"},{c:"角度",p:"jiǎodù",m:"perspective"},{c:"立场",p:"lìchǎng",m:"standpoint"},
+    {c:"观点",p:"guāndiǎn",m:"viewpoint"},{c:"思路",p:"sīlù",m:"train of thought"},{c:"逻辑",p:"luójí",m:"logic"},{c:"论点",p:"lùndiǎn",m:"argument / thesis"},{c:"证据",p:"zhèngjù",m:"evidence"},
+    {c:"案例",p:"ànlì",m:"case study"},{c:"经验",p:"jīngyàn",m:"experience"},{c:"教训",p:"jiàoxùn",m:"lesson"},{c:"反思",p:"fǎnsī",m:"reflection"},{c:"总结",p:"zǒngjié",m:"summary"},
+  ],
+  5: [
+    {c:"诠释",p:"quánshì",m:"to interpret"},{c:"阐述",p:"chǎnshù",m:"to elaborate"},{c:"剖析",p:"pōuxī",m:"to dissect / analyze"},{c:"辨析",p:"biànxī",m:"to differentiate"},{c:"探讨",p:"tàntǎo",m:"to explore"},
+    {c:"审视",p:"shěnshì",m:"to scrutinize"},{c:"权衡",p:"quánhéng",m:"to weigh / balance"},{c:"斟酌",p:"zhēnzhuó",m:"to deliberate"},{c:"契合",p:"qìhé",m:"to fit / match"},{c:"偏差",p:"piānchā",m:"deviation"},
+    {c:"悖论",p:"bèilùn",m:"paradox"},{c:"矛盾",p:"máodùn",m:"contradiction"},{c:"分歧",p:"fēnqí",m:"divergence"},{c:"共识",p:"gòngshí",m:"consensus"},{c:"默契",p:"mòqì",m:"tacit understanding"},
+    {c:"汲取",p:"jīqǔ",m:"to absorb (lessons)"},{c:"援引",p:"yuányǐn",m:"to cite"},{c:"引申",p:"yǐnshēn",m:"to extrapolate"},{c:"衍生",p:"yǎnshēng",m:"to derive from"},{c:"蕴含",p:"yùnhán",m:"to embody"},
+    {c:"涵盖",p:"hángài",m:"to encompass"},{c:"囊括",p:"nángkuò",m:"to include all"},{c:"涉及",p:"shèjí",m:"to involve"},{c:"彰显",p:"zhāngxiǎn",m:"to manifest"},{c:"凸显",p:"tūxiǎn",m:"to highlight"},
+    {c:"揭示",p:"jiēshì",m:"to reveal"},{c:"印证",p:"yìnzhèng",m:"to corroborate"},{c:"折射",p:"zhéshè",m:"to reflect (fig.)"},{c:"渗透",p:"shèntòu",m:"to permeate"},{c:"贯穿",p:"guànchuān",m:"to run through"},
+    {c:"潜移默化",p:"qiányí mòhuà",m:"imperceptible influence"},{c:"耳濡目染",p:"ěr rú mù rǎn",m:"influenced by environment"},{c:"循序渐进",p:"xúnxù jiànjìn",m:"step by step"},{c:"持之以恒",p:"chí zhī yǐ héng",m:"to persevere"},{c:"精益求精",p:"jīng yì qiú jīng",m:"keep improving"},
+    {c:"不言而喻",p:"bù yán ér yù",m:"self-evident"},{c:"显而易见",p:"xiǎn ér yì jiàn",m:"obvious"},{c:"举一反三",p:"jǔ yī fǎn sān",m:"learn by analogy"},{c:"融会贯通",p:"rónghuì guàntōng",m:"master through integration"},{c:"统筹兼顾",p:"tǒngchóu jiāngù",m:"overall planning"},
+    {c:"相辅相成",p:"xiāngfǔ xiāngchéng",m:"complement each other"},{c:"取长补短",p:"qǔ cháng bǔ duǎn",m:"learn from strengths"},{c:"博采众长",p:"bó cǎi zhòng cháng",m:"draw on many strengths"},{c:"高瞻远瞩",p:"gāo zhān yuǎn zhǔ",m:"far-sighted"},{c:"深谋远虑",p:"shēn móu yuǎn lǜ",m:"far-sighted planning"},
+    {c:"运筹帷幄",p:"yùnchóu wéiwò",m:"strategic planning"},{c:"胸有成竹",p:"xiōng yǒu chéng zhú",m:"have a plan ready"},{c:"如火如荼",p:"rú huǒ rú tú",m:"like wildfire"},{c:"欣欣向荣",p:"xīn xīn xiàng róng",m:"flourishing"},{c:"蒸蒸日上",p:"zhēng zhēng rì shàng",m:"thriving day by day"},
+    {c:"弄巧成拙",p:"nòng qiǎo chéng zhuō",m:"try clever, fail"},{c:"事与愿违",p:"shì yǔ yuàn wéi",m:"things go contrary to wishes"},{c:"功亏一篑",p:"gōng kuī yī kuì",m:"fail at last step"},{c:"半途而废",p:"bàntú ér fèi",m:"give up halfway"},{c:"坚持不懈",p:"jiānchí bùxiè",m:"persist without giving up"},
+  ],
+  6: [
+    {c:"鞭辟入里",p:"biān pì rù lǐ",m:"incisive analysis"},{c:"入木三分",p:"rù mù sān fēn",m:"deeply incisive"},{c:"言简意赅",p:"yán jiǎn yì gāi",m:"concise and complete"},{c:"意味深长",p:"yìwèi shēncháng",m:"profound meaning"},{c:"高屋建瓴",p:"gāo wū jiàn líng",m:"commanding overview"},
+    {c:"提纲挈领",p:"tí gāng qiè lǐng",m:"grasp the essentials"},{c:"一以贯之",p:"yī yǐ guàn zhī",m:"consistent throughout"},{c:"一脉相承",p:"yī mài xiāng chéng",m:"from same lineage"},{c:"殊途同归",p:"shū tú tóng guī",m:"different paths, same end"},{c:"异曲同工",p:"yì qǔ tóng gōng",m:"different approach, same result"},
+    {c:"不谋而合",p:"bù móu ér hé",m:"agree without prior discussion"},{c:"心照不宣",p:"xīn zhào bù xuān",m:"mutual understanding"},{c:"旁征博引",p:"páng zhēng bó yǐn",m:"cite extensively"},{c:"博古通今",p:"bó gǔ tōng jīn",m:"learned in past and present"},{c:"学贯中西",p:"xué guàn zhōngxī",m:"versed in Chinese & Western"},
+    {c:"继往开来",p:"jì wǎng kāi lái",m:"inherit and carry forward"},{c:"破旧立新",p:"pò jiù lì xīn",m:"break old, build new"},{c:"推陈出新",p:"tuī chén chū xīn",m:"discard old for new"},{c:"深入浅出",p:"shēnrù qiǎnchū",m:"explain profoundly simply"},{c:"化繁为简",p:"huà fán wéi jiǎn",m:"simplify complexity"},
+    {c:"举重若轻",p:"jǔ zhòng ruò qīng",m:"handle hard tasks with ease"},{c:"振聋发聩",p:"zhèn lóng fā kuì",m:"awaken / enlighten"},{c:"醍醐灌顶",p:"tí hú guàn dǐng",m:"sudden enlightenment"},{c:"茅塞顿开",p:"máo sè dùn kāi",m:"sudden understanding"},{c:"豁然开朗",p:"huòrán kāilǎng",m:"suddenly see the light"},
+    {c:"沧海桑田",p:"cānghǎi sāngtián",m:"great changes over time"},{c:"物是人非",p:"wù shì rén fēi",m:"things remain, people change"},{c:"时过境迁",p:"shí guò jìng qiān",m:"times change"},{c:"白驹过隙",p:"bái jū guò xì",m:"time flies"},{c:"不可逆转",p:"bùkě nìzhuǎn",m:"irreversible"},
+    {c:"势不可挡",p:"shì bù kě dǎng",m:"unstoppable"},{c:"大势所趋",p:"dà shì suǒ qū",m:"trend of the times"},{c:"时不我待",p:"shí bù wǒ dài",m:"time waits for no one"},{c:"力挽狂澜",p:"lì wǎn kuánglán",m:"heroic effort to save"},{c:"中流砥柱",p:"zhōngliú dǐzhù",m:"pillar of strength"},
+    {c:"砥砺前行",p:"dǐlì qiánxíng",m:"forge ahead despite difficulty"},{c:"披荆斩棘",p:"pī jīng zhǎn jí",m:"overcome all obstacles"},{c:"百折不挠",p:"bǎi zhé bù náo",m:"indomitable"},{c:"锲而不舍",p:"qiè ér bù shě",m:"chisel and not give up"},{c:"水滴石穿",p:"shuǐ dī shí chuān",m:"persistence wears stone"},
+    {c:"众志成城",p:"zhòngzhì chéngchéng",m:"united we stand"},{c:"同舟共济",p:"tóng zhōu gòng jì",m:"pull together in trouble"},{c:"风雨同舟",p:"fēng yǔ tóng zhōu",m:"through thick and thin"},{c:"审时度势",p:"shěn shí duó shì",m:"assess the situation"},{c:"因势利导",p:"yīn shì lì dǎo",m:"guide by circumstances"},
+    {c:"顺势而为",p:"shùn shì ér wéi",m:"act with the trend"},{c:"见机行事",p:"jiàn jī xíng shì",m:"act as occasion demands"},{c:"从长计议",p:"cóng cháng jì yì",m:"take long-term view"},{c:"一劳永逸",p:"yī láo yǒng yì",m:"solve once and for all"},{c:"标本兼治",p:"biāo běn jiān zhì",m:"treat symptoms and root cause"},
+  ]
+};
+
+const levelColors = {
+  1: {bg:'#E6F1FB', color:'#185FA5'},
+  2: {bg:'#E1F5EE', color:'#0F6E56'},
+  3: {bg:'#FAECE7', color:'#993C1D'},
+  4: {bg:'#FBEAF0', color:'#993556'},
+  5: {bg:'#EAF3DE', color:'#3B6D11'},
+  6: {bg:'#EEEDFE', color:'#3C3489'}
+};
+
+let currentLevel = 1, pool = [], idx = 0, totalSec = 10, secLeft = 10, timer = null;
+
+function shuffle(a) {
+  const b = [...a]; for (let i = b.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b;
+}
+function buildPool(lvl) {
+  if (lvl === 0) { let all=[]; for(let l=1;l<=6;l++) all=all.concat(vocab[l].map(w=>({...w,level:l}))); return shuffle(all); }
+  return shuffle(vocab[lvl].map(w=>({...w,level:lvl})));
+}
+function showWord() {
+  const w = pool[idx];
+  document.getElementById('char').textContent = w.c;
+  document.getElementById('pinyin').textContent = w.p;
+  document.getElementById('meaning').textContent = w.m;
+  const badge = document.getElementById('badge');
+  badge.textContent = 'HSK ' + w.level;
+  const col = levelColors[w.level];
+  badge.style.background = col.bg; badge.style.color = col.color;
+  document.getElementById('counter').textContent = (idx+1) + ' / ' + pool.length + ' คำ';
+}
+function updateBar() {
+  const pct = Math.round((secLeft/totalSec)*100);
+  document.getElementById('bar').style.width = pct + '%';
+  const s = secLeft;
+  document.getElementById('countdown').textContent = s<60?s+'s':s<3600?Math.round(s/60)+'m':s<86400?Math.round(s/3600)+'h':Math.round(s/86400)+'d';
+}
+function startTimer() {
+  clearInterval(timer); secLeft = totalSec; updateBar();
+  timer = setInterval(()=>{ secLeft=Math.max(0,secLeft-1); updateBar(); if(secLeft<=0){idx=(idx+1)%pool.length;showWord();secLeft=totalSec;} },1000);
+}
+function nextWord() { idx=(idx+1)%pool.length; showWord(); startTimer(); }
+function prevWord() { idx=(idx-1+pool.length)%pool.length; showWord(); startTimer(); }
+
+document.getElementById('lvl-select').addEventListener('change',function(){ currentLevel=parseInt(this.value); pool=buildPool(currentLevel); idx=0; showWord(); startTimer(); });
+document.getElementById('freq-select').addEventListener('change',function(){ totalSec=parseInt(this.value); secLeft=totalSec; startTimer(); });
+
+pool = buildPool(1); showWord(); startTimer();
+</script>
+</body>
+</html>
